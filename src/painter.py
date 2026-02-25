@@ -26,12 +26,30 @@ class Painter:
 
         self.timer = timer.Timer()
 
+        self.cursor = np.zeros_like(self.canvas)
+
+        self.menu = np.zeros_like(self.canvas)
+        self.menu_mask = np.zeros_like(self.canvas)
+        self.menu_mask.fill(255)
+        self.show_menu = False
+
+        self.rectangle_size = 100
+        self.fill_menu()
+
+
     def update_frame(self, frame):
-        new_frame = (frame & self.mask) + self.canvas
+        new_frame = ((frame & self.mask) + self.canvas)
+
+        if self.show_menu:
+            new_frame = (new_frame & self.menu_mask) + self.menu
+
+        new_frame = new_frame ^ self.cursor
+
+        self.cursor.fill(0)
         return new_frame
 
 
-    def draw(self, frame, cursor):
+    def draw(self, cursor):
 
         h, w , c = self.canvas.shape
         cx, cy = int(cursor.x * w), int(cursor.y * h)
@@ -58,8 +76,16 @@ class Painter:
             cv2.bitwise_or(self.canvas, stroke, self.canvas)
 
 
-    def show_cursor(self, frame, cursor):
-        pass
+
+    def show_cursor(self, cursor):
+        cursor_width = self.thickness
+
+        h, w, c = self.canvas.shape
+        cx, cy = int(cursor.x * w), int(cursor.y * h)
+
+
+        cv2.line(self.cursor, (cx - cursor_width, cy), (cx + cursor_width, cy), Color.White.value, 1)
+        cv2.line(self.cursor, (cx, cy - cursor_width), (cx, cy + cursor_width), Color.White.value, 1)
 
 
     def erase(self, frame, wrist, middle_base):
@@ -91,3 +117,19 @@ class Painter:
 
     def reset_previous_cursor(self):
         self.previous_cursor = None
+
+    def open_menu(self):
+
+        if self.timer.can_material_switch():
+
+            self.show_menu = not self.show_menu
+
+            if self.show_menu:
+                pass
+
+    def fill_menu(self):
+
+        cv2.rectangle(self.menu, (50, 50), (50 + self.rectangle_size, 50 + self.rectangle_size), (0, 0, 0), cv2.FILLED)
+        cv2.rectangle(self.menu_mask, (50, 50), (50 + self.rectangle_size, 50 + self.rectangle_size), (0, 0, 0), cv2.FILLED)
+
+

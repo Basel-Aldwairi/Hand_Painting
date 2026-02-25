@@ -1,5 +1,5 @@
 import cv2
-from config import CAMERA_RESOLUTION, MONITOR_RESOLUTION
+from config import CAMERA_RESOLUTION, MONITOR_RESOLUTION, LOW_POWER_CAMERA_RESOLUTION, USE_LOW_POWER_CAMERA
 from hand_tracker import HandTracker
 from gestures import get_marks, evaluate_gesture
 from config import Gesture
@@ -7,8 +7,14 @@ from painter import Painter
 
 cap = cv2.VideoCapture(0)
 
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_RESOLUTION[1])
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, CAMERA_RESOLUTION[0])
+if USE_LOW_POWER_CAMERA:
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, LOW_POWER_CAMERA_RESOLUTION[1])
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, LOW_POWER_CAMERA_RESOLUTION[0])
+else:
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_RESOLUTION[1])
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, CAMERA_RESOLUTION[0])
+
+
 
 hand_tracker = HandTracker()
 painter = Painter()
@@ -37,7 +43,7 @@ while True:
 
         match gesture:
             case Gesture.Index_Finger:
-                painter.draw(frame, landmarks[8])
+                painter.draw(landmarks[8])
 
             case Gesture.Open_Hand:
                 frame = painter.erase(frame, landmarks[0], landmarks[9])
@@ -46,7 +52,11 @@ while True:
                 painter.change_color()
 
             case Gesture.Pinky_Finger:
-                painter.change_material()
+                # painter.change_material()
+                painter.open_menu()
+
+            case Gesture.Index_Middle_Fingers:
+                painter.show_cursor(landmarks[8])
 
     else:
         painter.reset_previous_cursor()
