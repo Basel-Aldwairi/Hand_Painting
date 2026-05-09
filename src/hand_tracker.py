@@ -11,16 +11,23 @@ class HandTracker:
         self.camera_resolution = camera_resolution
         self.monitor_resolution = monitor_resolution
 
+        self.hand_landmarks = None
+
+
 
     def process_image(self, image):
 
         results = self.hands.process(image)
 
         landmarks = None
+        hand_landmarks = None
 
         if results.multi_hand_landmarks:
             hand_landmarks = results.multi_hand_landmarks[0]
             landmarks = hand_landmarks.landmark
+
+
+        self.hand_landmarks = hand_landmarks
 
         return landmarks
 
@@ -28,3 +35,6 @@ class HandTracker:
         self.mp_drawing.draw_landmarks(frame, landmarks, self.mp_hands.HAND_CONNECTIONS)
 
         return frame
+
+    def draw_hand_landmarks(self, frame):
+        self.mp_drawing.draw_landmarks(frame, self.hand_landmarks, self.mp_hands.HAND_CONNECTIONS)

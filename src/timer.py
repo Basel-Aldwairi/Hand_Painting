@@ -5,10 +5,12 @@ class Timer:
 
         self.color_switch = 0.75
         self.material_switch = 0.75
+        self.open_menu = 0.75
         self.stroke_timer = 0.5
 
         self.last_color_switch = time.time()
         self.last_material_switch = time.time()
+        self.last_open_menu = time.time()
         self.last_stroke = time.time()
 
     def can_color_switch(self):
@@ -22,6 +24,13 @@ class Timer:
         current_time = time.time()
         if current_time - self.last_material_switch > self.material_switch:
             self.last_material_switch = current_time
+            return True
+        return False
+
+    def can_open_menu(self):
+        current_time = time.time()
+        if current_time - self.last_open_menu > self.open_menu:
+            self.last_open_menu = current_time
             return True
         return False
 

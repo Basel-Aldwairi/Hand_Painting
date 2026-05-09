@@ -29,10 +29,19 @@ def get_marks(landmarks):
     pips = [6, 10, 14, 18]
 
     finger_data = zip(tips, pips)
+    #
+    # print("tips : " + str(landmarks[tips[0]].z))
+    # print("pips : " + str(landmarks[pips[0]].z))
 
     for i, (tip, pip) in enumerate(finger_data):
         if landmarks[tip].y < landmarks[pip].y:
             marks[i + 1] = True
+
+    # if landmarks[tips[0]].z < landmarks[pips[0]].z:
+    #     marks[1] = True
+    #
+    # marks[2] = False
+    # marks[3] = False
 
     return marks
 
@@ -63,6 +72,11 @@ def evaluate_gesture(marks) -> Gesture:
 
     elif evaluate_marks([False, True, True, False, False], marks):
         gesture =  Gesture.Index_Middle_Fingers
+    elif evaluate_marks([False, False, False, True, True], marks):
+        gesture =  Gesture.Ring_Pinky_Fingers
+
+
+
 
 
     return gesture

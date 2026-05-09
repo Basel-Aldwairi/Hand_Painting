@@ -17,7 +17,7 @@ else:
 
 
 hand_tracker = HandTracker()
-painter = Painter()
+painter = Painter(thickness=8)
 
 
 while True:
@@ -33,6 +33,8 @@ while True:
 
     landmarks = hand_tracker.process_image(frame)
 
+    hand_tracker.draw_hand_landmarks(frame)
+
     if landmarks:
 
         marks = get_marks(landmarks)
@@ -43,20 +45,27 @@ while True:
 
         match gesture:
             case Gesture.Index_Finger:
-                painter.draw(landmarks[8])
+                if not painter.show_menu:
+                    painter.draw(landmarks[8])
+                else:
+                    painter.select_from_menu(landmarks[8])
 
             case Gesture.Open_Hand:
                 frame = painter.erase(frame, landmarks[0], landmarks[9])
 
-            case Gesture.Middle_Finger:
-                painter.change_color()
-
             case Gesture.Pinky_Finger:
-                # painter.change_material()
-                painter.open_menu()
+                # painter.change_color()
+                pass
+
+            case Gesture.Ring_Finger:
+                painter.change_material()
+                # painter.open_menu()
 
             case Gesture.Index_Middle_Fingers:
                 painter.show_cursor(landmarks[8])
+
+            case Gesture.Ring_Pinky_Fingers:
+                painter.open_menu()
 
     else:
         painter.reset_previous_cursor()

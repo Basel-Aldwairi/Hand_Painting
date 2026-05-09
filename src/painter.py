@@ -3,8 +3,9 @@ import numpy as np
 from config import MONITOR_RESOLUTION, Color, Material
 import timer
 
+
 class Painter:
-    def __init__(self, monitor_resolution= MONITOR_RESOLUTION, thickness=8):
+    def __init__(self, monitor_resolution=MONITOR_RESOLUTION, thickness=8):
 
         self.monitor_resolution = monitor_resolution
 
@@ -13,8 +14,9 @@ class Painter:
         self.mask.fill(255)
 
         self.thickness = thickness
+        self.cursor_thickness = 2
 
-        self.colors = [Color.White, Color.Black, Color.Red, Color.Green, Color.Blue]
+        self.colors = [color for color in Color]
         self.color_index = 0
         self.selected_color = self.colors[self.color_index]
 
@@ -34,8 +36,11 @@ class Painter:
         self.show_menu = False
 
         self.rectangle_size = 100
+        self.offest = 125
+        self.x_begin = 50
+        self.y_begin = 50
+        self.colors_in_row = 5
         self.fill_menu()
-
 
     def update_frame(self, frame):
         new_frame = ((frame & self.mask) + self.canvas)
@@ -48,16 +53,15 @@ class Painter:
         self.cursor.fill(0)
         return new_frame
 
-
     def draw(self, cursor):
 
-        h, w , c = self.canvas.shape
+        h, w, c = self.canvas.shape
         cx, cy = int(cursor.x * w), int(cursor.y * h)
 
         stroke = np.zeros_like(self.canvas)
 
         if not self.previous_cursor or not self.timer.connect_strokes():
-            self.previous_cursor = (cx ,cy)
+            self.previous_cursor = (cx, cy)
 
         if self.selected_material == Material.Solid:
             cv2.circle(self.canvas, (cx, cy), self.thickness, self.selected_color.value, cv2.FILLED)
@@ -75,22 +79,20 @@ class Painter:
         if self.selected_material == Material.Glassy:
             cv2.bitwise_or(self.canvas, stroke, self.canvas)
 
-
-
     def show_cursor(self, cursor):
         cursor_width = self.thickness
 
         h, w, c = self.canvas.shape
         cx, cy = int(cursor.x * w), int(cursor.y * h)
 
-
-        cv2.line(self.cursor, (cx - cursor_width, cy), (cx + cursor_width, cy), Color.White.value, 1)
-        cv2.line(self.cursor, (cx, cy - cursor_width), (cx, cy + cursor_width), Color.White.value, 1)
-
+        cv2.line(self.cursor, (cx - cursor_width, cy), (cx + cursor_width, cy), Color.White.value,
+                 self.cursor_thickness)
+        cv2.line(self.cursor, (cx, cy - cursor_width), (cx, cy + cursor_width), Color.White.value,
+                 self.cursor_thickness)
 
     def erase(self, frame, wrist, middle_base):
 
-        h, w , c = self.canvas.shape
+        h, w, c = self.canvas.shape
 
         eraser_x = int((wrist.x * w + middle_base.x * w) / 2)
         eraser_y = int((wrist.y * h + middle_base.y * h) / 2)
@@ -120,16 +122,39 @@ class Painter:
 
     def open_menu(self):
 
-        if self.timer.can_material_switch():
-
+        if self.timer.can_open_menu():
             self.show_menu = not self.show_menu
 
-            if self.show_menu:
-                pass
+    def get_coordinates(self, index):
+
+        x_index = index % self.colors_in_row
+        x_start = self.x_begin + self.offest * x_index
+        x_end = x_start + self.rectangle_size
+
+        y_index = int(np.floor(index / self.colors_in_row))
+        y_start = self.y_begin + self.offest * y_index
+        y_end = y_start + self.rectangle_size
+
+        return (x_start, y_start), (x_end, y_end)
 
     def fill_menu(self):
 
-        cv2.rectangle(self.menu, (50, 50), (50 + self.rectangle_size, 50 + self.rectangle_size), (0, 0, 0), cv2.FILLED)
-        cv2.rectangle(self.menu_mask, (50, 50), (50 + self.rectangle_size, 50 + self.rectangle_size), (0, 0, 0), cv2.FILLED)
+        for i, color in enumerate(self.colors):
+            start, end = self.get_coordinates(i)
+            cv2.rectangle(self.menu, start, end, color.value,
+                          cv2.FILLED)
+            cv2.rectangle(self.menu_mask, start, end, (0, 0, 0),
+                          cv2.FILLED)
 
+    def select_from_menu(self, cursor):
+        h, w, c = self.canvas.shape
+        cx, cy = int(cursor.x * w), int(cursor.y * h)
 
+        for i, color in enumerate(self.colors):
+
+            start, end = self.get_coordinates(i)
+            x_start, y_start = start
+            x_end, y_end = end
+
+            if x_start <= cx <= x_end and y_start <= cy <= y_end:
+                self.selected_color = color
