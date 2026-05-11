@@ -1,6 +1,8 @@
 from enum import Enum, auto
 
+# Configs, constants and Enums
 
+# Enums for all the colors, can easily add and remove colors
 class Color(Enum):
     White = (255, 255, 255)
     Black = (0,0,0)
@@ -26,11 +28,13 @@ class Color(Enum):
     Maroon = (85,0,0)
     Patriarch_Purple =  (128,0,128)
 
-
+# Enums for the materials available
 class Material(Enum):
     Solid = 0
     Glassy = 1
 
+
+# Enums for all the gestures available, can easily add gestures, would need to be updated in gestures.py
 class Gesture(Enum):
 
     Thumb = auto()
@@ -46,6 +50,9 @@ class Gesture(Enum):
     Ring_Pinky_Fingers = auto()
 
     Uknown = auto()
+
+
+# Camer and monitor constants
 
 CAMERA_RESOLUTION = (360, 640)
 
